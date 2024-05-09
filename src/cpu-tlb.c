@@ -75,39 +75,40 @@ int tlballoc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
   int addr, val;
 
   struct TLB_cache *tlb = proc->tlb;  // proc is added TLB_cache struct.
-  if (size > tlb->num){
+		
+  if (size > proc->tlb->num){
     printf("missing mermory region! \n");
     return -1;        
   }
 
   for (int i=0;i<size;i++){
+    
     struct TLB_node *freeTLB = tlb->freetail;
-    proc->tlb->tail = proc->tlb->tail->prev;
-    tlb->freetail->next = NULL;
+    proc->tlb->freetail = proc->tlb->freetail->prev;
+    proc->tlb->freetail->next = NULL;
 
 
     freeTLB->next = freeTLB->prev = NULL;
     freeTLB->indexOfRegister = reg_index;
     freeTLB->isWrite = 0;       
-    if (tlb->head == NULL){
-          tlb->head = tlb->tail = freeTLB;
-          tlb->num = tlb->num - 1; 
+    if (proc->tlb->head == NULL){
+          proc->tlb->head = proc->tlb->tail = freeTLB;
+          proc->tlb->num--; 
     }
     else {
-      tlb->tail->next = freeTLB;
-      freeTLB->prev = tlb->tail;
-      tlb->tail = freeTLB;
-      tlb->num = tlb->num - 1;
+      proc->tlb->tail->next = freeTLB;
+      freeTLB->prev = proc->tlb->tail;
+      proc->tlb->tail = freeTLB;
+      proc->tlb->num--;
     }
-
   }
-
   /* By default using vmaid = 0 */
   val = __alloc(proc, 0, reg_index, size, &addr);
 
   /* TODO update TLB CACHED frame num of the new allocated page(s)*/
   /* by using tlb_cache_read()/tlb_cache_write()*/
 
+  printf("size: %d\n", size);
   return val;
 }
 
@@ -136,12 +137,12 @@ int tlbfree_data(struct pcb_t *proc, uint32_t reg_index)
           }
         }
         else if (temp == proc->tlb->tail){
-        proc->tlb->tail = proc->tlb->tail->prev;
-        proc->tlb->tail->next = NULL;
+          proc->tlb->tail = proc->tlb->tail->prev;
+          proc->tlb->tail->next = NULL;
         }
         else {
-        tlbnode->next->prev = tlbnode->prev;
-        tlbnode->prev->next = tlbnode->next;
+          tlbnode->next->prev = tlbnode->prev;
+          tlbnode->prev->next = tlbnode->next;
         }
         temp = temp->next;
         tlbnode->isWrite = 0;
@@ -153,7 +154,7 @@ int tlbfree_data(struct pcb_t *proc, uint32_t reg_index)
         tlbnode->prev = proc->tlb->freetail;
         proc->tlb->freetail = tlbnode;
 
-      proc->tlb->num = proc->tlb->num + 1;
+      proc->tlb->num++;
       continue;
     }
     temp = temp->next;

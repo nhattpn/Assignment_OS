@@ -61,6 +61,7 @@ static void * cpu_routine(void * args) {
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
 		 	* ready queue */
+		 	usleep(3);
 			proc = get_proc();
 			if (proc == NULL) {
                            next_slot(timer_id);
@@ -72,6 +73,7 @@ static void * cpu_routine(void * args) {
 			printf("\tCPU %d: Processed %2d has finished\n",
 				id ,proc->pid);
 			free(proc);
+			usleep(3);
 			proc = get_proc();
 			time_left = 0;
 		}else if (time_left == 0) {
@@ -79,15 +81,18 @@ static void * cpu_routine(void * args) {
 			// enqueue process and cle
 			printf("\tCPU %d: Put process %2d to run queue\n",
 				id, proc->pid);
-			tlb_flush_tlb_of(flush);
 			put_proc(proc);
+			usleep(20);
 			proc = get_proc();
 		}
-		
+		// printf("check: %d\n", proc->code->text->opcode);
 		/* Recheck process status after loading new process */
 		if (proc == NULL && done) {
 			/* No process to run, exit */
 			printf("\tCPU %d stopped\n", id);
+			#ifdef CPU_TLB
+				tlb_flush_tlb_of(flush);
+			#endif
 			break;
 		}else if (proc == NULL) {
 			/* There may be new processes to run in
@@ -95,14 +100,14 @@ static void * cpu_routine(void * args) {
 			next_slot(timer_id);
 			continue;
 		}else if (time_left == 0) {
-		printf("%2d",proc->pid);
+			usleep(5);
 			printf("\tCPU %d: Dispatched process %2d\n",
 				id, proc->pid);
 			time_left = time_slot;
 		}
-		
 		/* Run current process */
 		run(proc);
+
 		time_left--;
 		next_slot(timer_id);
 	}
@@ -219,7 +224,8 @@ static void read_config(const char * path) {
 		strcat(ld_processes.path[i], "input/proc/");
 		char proc[100];
 #ifdef MLQ_SCHED
-		fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+		// fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #else
 		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #endif

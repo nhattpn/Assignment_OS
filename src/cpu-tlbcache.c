@@ -62,6 +62,10 @@
 }
 
 int tlb_cache_write(struct TLB_cache *tlb, uint32_t pid, uint32_t MEMPHY, uint32_t MEMVIR) {
+   /* TODO: the identify info is mapped to 
+    *      cache line by employing:
+    *      direct mapped, associated mapping etc.
+    */
     if (tlb->head == NULL) {
         printf("Error\n");
         return -1;
@@ -85,33 +89,6 @@ int tlb_cache_write(struct TLB_cache *tlb, uint32_t pid, uint32_t MEMPHY, uint32
                     current_node->next->prev = current_node->prev;
                     current_node->next = current_node->prev = NULL;
                      }
-                current_node->next = tlb->head;
-                tlb->head->prev = current_node;
-                tlb->head = current_node;
-            }
-            return 0;
-        }
-        current_node = current_node->next;
-    }
-
-    current_node = tlb->head;
-    while (current_node != NULL) {
-        if (current_node->isWrite == 0) {
-            current_node->MEMPHY = MEMPHY;
-            current_node->MEMVIR = MEMVIR;
-            current_node->pid = pid;
-            current_node->isWrite = 1;
-
-            if (current_node != tlb->head) {
-                if (current_node == tlb->tail) {
-                    current_node->prev->next = NULL;
-                    tlb->tail = current_node->prev;
-                    current_node->prev = NULL;
-                } else {
-                    current_node->prev->next = current_node->next;
-                    current_node->next->prev = current_node->prev;
-                    current_node->next = current_node->prev = NULL;
-                }
                 current_node->next = tlb->head;
                 tlb->head->prev = current_node;
                 tlb->head = current_node;
