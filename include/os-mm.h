@@ -101,12 +101,10 @@ struct memphy_struct
    /* Basic field of data and size */
    BYTE *storage;
    int maxsz;
-
    sem_t MEMPHY_lock;
    /* Sequential device fields */
    int rdmflg;
    int cursor;
-
    /* Management structure */
    struct framephy_struct *free_fp_list;
    struct framephy_struct *used_fp_list;

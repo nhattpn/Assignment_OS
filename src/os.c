@@ -232,12 +232,13 @@ static void read_config(const char * path) {
 		strcat(ld_processes.path[i], "input/proc/");
 		char proc[100];
 #ifdef MLQ_SCHED
-		// fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
-		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
+
+// /*OPTION_1*/ fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+/*OPTION_2*/ fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #else
 		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #endif
-		strcat(ld_processes.path[i], proc);
+		strcat(ld_processes.path[i], proc);	
 	}
 }
 
