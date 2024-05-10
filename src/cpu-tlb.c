@@ -35,7 +35,7 @@ int tlb_flush_tlb_of(struct TLB_cache *flush) {
     if (ptr != NULL) {
         while (ptr != NULL) {
             if (ptr->isWrite == 1) {
-                printf("memphy: %5d memv: '%5d' pid: '%d'\n", ptr->MEMPHY, ptr->MEMVIR, ptr->pid);
+                printf("memphy: %5d | memv: '%5d'| pid: '%d'\n", ptr->MEMPHY, ptr->MEMVIR, ptr->pid);
             }
             tmp = ptr;
             ptr = ptr->next;
@@ -108,7 +108,6 @@ int tlballoc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
   /* TODO update TLB CACHED frame num of the new allocated page(s)*/
   /* by using tlb_cache_read()/tlb_cache_write()*/
 
-  printf("size: %d\n", size);
   return val;
 }
 

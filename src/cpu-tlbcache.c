@@ -89,6 +89,7 @@ int tlb_cache_write(struct TLB_cache *tlb, uint32_t pid, uint32_t MEMPHY, uint32
                     current_node->next->prev = current_node->prev;
                     current_node->next = current_node->prev = NULL;
                      }
+                // move currentnode to head
                 current_node->next = tlb->head;
                 tlb->head->prev = current_node;
                 tlb->head = current_node;
@@ -97,6 +98,36 @@ int tlb_cache_write(struct TLB_cache *tlb, uint32_t pid, uint32_t MEMPHY, uint32
         }
         current_node = current_node->next;
     }
+    struct TLB_node *checknode = tlb->head;
+    while (checknode != NULL) {
+    if (checknode->MEMVIR == MEMVIR && checknode->isWrite == 1 && checknode->pid == pid) {
+        checknode->MEMPHY = MEMPHY;
+        checknode->MEMVIR = MEMVIR;
+        checknode->pid = pid;
+        checknode->isWrite = 1;  // Assumed you intended this to be set
+
+        if (checknode != tlb->head) {
+            if (checknode == tlb->tail) {
+                checknode->prev->next = NULL;
+                tlb->tail = checknode->prev;
+                checknode->prev = NULL;
+            } 
+            else {
+                checknode->prev->next = checknode->next;
+                checknode->next->prev = checknode->prev;
+                checknode->next = checknode->prev = NULL;
+            }
+            // move checknode to head
+            checknode->next = tlb->head;
+            tlb->head->prev = checknode;
+            tlb->head = checknode;
+        }
+        return 0;
+    }
+    checknode = checknode->next;
+    }
+    
+
 
     struct TLB_node *node = tlb->tail;
     node->MEMPHY = MEMPHY;
@@ -194,4 +225,4 @@ int init_tlbmemphy(struct TLB_cache *tlb, int max_size)
     return 0;
 }
 
-//#endif
+// #endif

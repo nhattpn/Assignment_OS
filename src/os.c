@@ -57,6 +57,7 @@ static void * cpu_routine(void * args) {
 	int time_left = 0;
 	struct pcb_t * proc = NULL;
 	while (1) {
+		usleep(3);
 		/* Check the status of current process */
 		if (proc == NULL) {
 			/* No process is running, the we load new process from
@@ -144,13 +145,20 @@ static void * ld_routine(void * args) {
 		proc->mram = mram;
 		proc->mswp = mswp;
 		proc->active_mswp = active_mswp;
+		sem_init(&proc->mm->memlock, 0, 1);
 #ifdef CPU_TLB
 		proc->tlb = tlb;
 #endif
 #endif
+#ifdef MLQ_SCHED
 		printf("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
 			ld_processes.path[i], proc->pid, ld_processes.prio[i]);
 		add_proc(proc);
+#else
+		printf("\tLoaded a process at %s, PID: %d \n",
+			ld_processes.path[i], proc->pid);
+		add_proc(proc);
+#endif
 		free(ld_processes.path[i]);
 		i++;
 		next_slot(timer_id);
@@ -224,8 +232,8 @@ static void read_config(const char * path) {
 		strcat(ld_processes.path[i], "input/proc/");
 		char proc[100];
 #ifdef MLQ_SCHED
-		fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
-		// fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
+		// fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #else
 		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #endif
@@ -274,6 +282,7 @@ int main(int argc, char * argv[]) {
 
 	/* Create MEM RAM */
 	init_memphy(&mram, memramsz, rdmflag);
+	sem_init(&mram.MEMPHY_lock, 0, 1);
 
 	/* Create all MEM SWAP */ 
 	int sit;
